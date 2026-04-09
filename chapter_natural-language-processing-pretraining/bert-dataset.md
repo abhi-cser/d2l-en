@@ -360,11 +360,26 @@ and generate pretraining examples**] from it.
 ```{.python .input}
 #@tab mxnet
 #@save
+def _read_wiki_hf():
+    """Fetch WikiText-2 train split from HuggingFace datasets (parquet).
+    Used as a fallback when the original S3 zip URL is unavailable."""
+    from datasets import load_dataset
+    ds = load_dataset('Salesforce/wikitext', 'wikitext-2-v1', split='train')
+    lines = [row['text'] for row in ds]
+    paragraphs = [line.strip().lower().split(' . ')
+                  for line in lines if len(line.split(' . ')) >= 2]
+    random.shuffle(paragraphs)
+    return paragraphs
+
+#@save
 def load_data_wiki(batch_size, max_len):
     """Load the WikiText-2 dataset."""
     num_workers = d2l.get_dataloader_workers()
-    data_dir = d2l.download_extract('wikitext-2', 'wikitext-2')
-    paragraphs = _read_wiki(data_dir)
+    try:
+        data_dir = d2l.download_extract('wikitext-2', 'wikitext-2')
+        paragraphs = _read_wiki(data_dir)
+    except Exception:
+        paragraphs = _read_wiki_hf()
     train_set = _WikiTextDataset(paragraphs, max_len)
     train_iter = gluon.data.DataLoader(train_set, batch_size, shuffle=True,
                                        num_workers=num_workers)
@@ -374,11 +389,26 @@ def load_data_wiki(batch_size, max_len):
 ```{.python .input}
 #@tab pytorch
 #@save
+def _read_wiki_hf():
+    """Fetch WikiText-2 train split from HuggingFace datasets (parquet).
+    Used as a fallback when the original S3 zip URL is unavailable."""
+    from datasets import load_dataset
+    ds = load_dataset('Salesforce/wikitext', 'wikitext-2-v1', split='train')
+    lines = [row['text'] for row in ds]
+    paragraphs = [line.strip().lower().split(' . ')
+                  for line in lines if len(line.split(' . ')) >= 2]
+    random.shuffle(paragraphs)
+    return paragraphs
+
+#@save
 def load_data_wiki(batch_size, max_len):
     """Load the WikiText-2 dataset."""
     num_workers = d2l.get_dataloader_workers()
-    data_dir = d2l.download_extract('wikitext-2', 'wikitext-2')
-    paragraphs = _read_wiki(data_dir)
+    try:
+        data_dir = d2l.download_extract('wikitext-2', 'wikitext-2')
+        paragraphs = _read_wiki(data_dir)
+    except Exception:
+        paragraphs = _read_wiki_hf()
     train_set = _WikiTextDataset(paragraphs, max_len)
     train_iter = torch.utils.data.DataLoader(train_set, batch_size,
                                         shuffle=True, num_workers=num_workers)
