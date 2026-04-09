@@ -8,7 +8,8 @@ requirements = [
     'matplotlib-inline==0.1.6',
     'requests==2.31.0',
     'pandas==2.0.3',
-    'scipy==1.10.1'
+    'scipy==1.10.1',
+    'datasets'  # HuggingFace datasets: fallback for broken WikiText-2 zip URL
 ]
 
 setup(
