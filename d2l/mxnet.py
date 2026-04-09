@@ -2286,6 +2286,17 @@ def _read_wiki(data_dir):
     random.shuffle(paragraphs)
     return paragraphs
 
+def _read_wiki_hf():
+    """Fetch WikiText-2 train split from HuggingFace datasets (parquet).
+    Used when the original S3 zip URL is unavailable."""
+    from datasets import load_dataset  # pip install datasets
+    ds = load_dataset('Salesforce/wikitext', 'wikitext-2-v1', split='train')
+    lines = [row['text'] for row in ds]
+    paragraphs = [line.strip().lower().split(' . ')
+                  for line in lines if len(line.split(' . ')) >= 2]
+    random.shuffle(paragraphs)
+    return paragraphs
+
 def _get_next_sentence(sentence, next_sentence, paragraphs):
     """Defined in :numref:`sec_bert-dataset`"""
     if random.random() < 0.5:
@@ -2426,8 +2437,13 @@ def load_data_wiki(batch_size, max_len):
 
     Defined in :numref:`subsec_prepare_mlm_data`"""
     num_workers = d2l.get_dataloader_workers()
-    data_dir = d2l.download_extract('wikitext-2', 'wikitext-2')
-    paragraphs = _read_wiki(data_dir)
+    try:
+        # Primary: download zip from original URL (cached after first run)
+        data_dir = d2l.download_extract('wikitext-2', 'wikitext-2')
+        paragraphs = _read_wiki(data_dir)
+    except Exception:
+        # Fallback: stream from HuggingFace when zip URL is broken
+        paragraphs = _read_wiki_hf()
     train_set = _WikiTextDataset(paragraphs, max_len)
     train_iter = gluon.data.DataLoader(train_set, batch_size, shuffle=True,
                                        num_workers=num_workers)
