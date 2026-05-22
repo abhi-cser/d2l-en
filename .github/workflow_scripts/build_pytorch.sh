@@ -9,7 +9,7 @@ REPO_NAME="$1"  # Eg. 'd2l-en'
 TARGET_BRANCH="$2" # Eg. 'master' ; if PR raised to master
 CACHE_DIR="$3"  # Eg. 'ci_cache_pr' or 'ci_cache_push'
 
-pip3 install . "datasets<2.19.0"
+pip3 install .
 mkdir _build
 
 source $(dirname "$0")/utils.sh
